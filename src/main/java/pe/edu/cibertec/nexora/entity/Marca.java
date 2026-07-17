@@ -11,18 +11,18 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "tb_tipos")
+@Table(name="tb_marcas")
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class Tipo {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_tipo")
-    private Integer idTipo;
-
-    @Column(name = "tipo_desc", length = 15, nullable = false)
-    private String descripcion;
+public class Marca {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id_marca")
+	private Integer idMarca;
+	
+	@Column(name="marca_desc",length=45,nullable=false)
+	private String marcaDesc;
+	
 }

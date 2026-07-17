@@ -1,5 +1,8 @@
 package pe.edu.cibertec.nexora.entity;
 
+import java.math.BigDecimal;
+import java.sql.Date;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,19 +14,25 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "tb_estados")
+@Table(name="tb_productos")
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class Estado {
-
+public class Producto {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id_estado")
-	private Integer idEstado;
+	@Column(name = "id_prod")
+	private Integer idProducto;
 	
-	@Column(name = "estado_desc", length = 15, nullable = false)
-    private String descripcion;
-
+	@Column(name="prod_desc",length=45,nullable=false)
+	private String descripProducto;
+	
+	@Column(name="prod_stock")
+	private int stockProducto;
+	
+	@Column(name="prod_precio",nullable = false, precision = 10, scale = 2)
+	private BigDecimal precioProducto;
+	
+	
 }

@@ -1,5 +1,8 @@
 package pe.edu.cibertec.nexora.entity;
 
+import java.math.BigDecimal;
+import java.sql.Date;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,18 +14,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "tb_tipos")
+@Table(name="tb_comprobantes")
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class Tipo {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_tipo")
-    private Integer idTipo;
-
-    @Column(name = "tipo_desc", length = 15, nullable = false)
-    private String descripcion;
+public class Comprobante {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "num_comp")
+	private Integer numComprobante;
+	
+	@Column(name="fecha_comp")
+	private Date fechaComprobante;
+	
+	
 }
