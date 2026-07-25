@@ -14,7 +14,29 @@ public class MarcaServiceImpl implements MarcaService{
 	
 	@Autowired
 	private MarcaRepository repo;
-	
+
+	@Override
+	public List<Marca> listar() {
+		return repo.findAll();
+	}
+
+
+	@Override
+	public Marca guardar(Marca nueva_marca) {
+		return repo.save(nueva_marca);
+	}
+
+
+	@Override
+	public Marca buscarPorId(Integer id) {
+		return repo.findById(id).orElse(null);
+	}
+
+
+	@Override
+	public void eliminar(Integer id) {
+		repo.deleteById(id);
+	}
 	
 	@Override
 	public List<Marca> buscarPorTextoIngresado(String marca_textoIngresado) {
