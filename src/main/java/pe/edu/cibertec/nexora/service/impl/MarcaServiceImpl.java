@@ -20,18 +20,15 @@ public class MarcaServiceImpl implements MarcaService{
 		return repo.findAll();
 	}
 
-
 	@Override
 	public Marca guardar(Marca nueva_marca) {
 		return repo.save(nueva_marca);
 	}
 
-
 	@Override
 	public Marca buscarPorId(Integer id) {
 		return repo.findById(id).orElse(null);
 	}
-
 
 	@Override
 	public void eliminar(Integer id) {
