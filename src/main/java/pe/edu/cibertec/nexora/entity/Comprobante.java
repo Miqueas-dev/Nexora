@@ -1,6 +1,5 @@
 package pe.edu.cibertec.nexora.entity;
 
-import java.math.BigDecimal;
 import java.sql.Date;
 
 import jakarta.persistence.Column;
