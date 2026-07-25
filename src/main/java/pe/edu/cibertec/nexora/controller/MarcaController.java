@@ -21,7 +21,7 @@ public class MarcaController {
 		else
 			model.addAttribute("marcas",marcaService.buscarPorTextoIngresado(texto));
 		model.addAttribute("texto",texto);
-		return "/marcas";
+		return "/marcas/lista";
 	}
 	
 }

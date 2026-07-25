@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Marcas</title>
+</head>
+<body>
+
+<h2>Listado de Marcas</h2>
+
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Marca</th>
+    </tr>
+    <tr th:each="marca : ${marcas}">
+        <td th:text="${marca.idMarca}"></td>
+        <td th:text="${marca.marcaDesc}"></td>
+    </tr>
+</table>
+
+</body>
+</html>
