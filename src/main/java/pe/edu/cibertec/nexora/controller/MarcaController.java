@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -35,6 +36,7 @@ public class MarcaController {
 		model.addAttribute("marca", new Marca());
 		return "marcas/formulario";
 	}
+	
 	//Endpoint listo: http://localhost:8080/marcas/guardar
 	@PostMapping("/guardar")
 	public String guardarMarca(@ModelAttribute Marca marca, RedirectAttributes flash) {
@@ -42,6 +44,14 @@ public class MarcaController {
 		flash.addFlashAttribute("mensaje","Marca registrada!.");
 		return "redirect:/marcas";
 	}
+	
+	
+	@GetMapping("/editar/{id}")
+	public String editarMarca(@PathVariable Integer id, Model model) {
+		model.addAttribute("marca", marcaService.buscarPorId(id));
+		return "marcas/formulario";
+	}
+	
 	
 	
 }
