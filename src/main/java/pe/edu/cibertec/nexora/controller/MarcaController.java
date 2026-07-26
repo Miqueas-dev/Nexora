@@ -24,4 +24,5 @@ public class MarcaController {
 		return "/marcas/lista";
 	}
 	
+	
 }
