@@ -34,6 +34,12 @@ public class MarcaController {
 		return "marcas/formulario";
 	}
 	
+	@GetMapping("/guardar")
+	public String guardarMarca(@ModelAttribute Marca marca, RedirectAttributes flash) {
+		marcaService.guardar(marca);
+		flash.addFlashAttribute("mensaje","Marca registrada!.");
+		return "redirect:/marcas";
+	}
 	
 	
 }
