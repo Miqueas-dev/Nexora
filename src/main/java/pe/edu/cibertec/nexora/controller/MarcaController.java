@@ -29,12 +29,13 @@ public class MarcaController {
 		return "/marcas/lista";
 	}
 	
+	//Endpoint listo: http://localhost:8080/marcas/nuevo
 	@GetMapping("/nuevo")
 	public String nuevaMarca(Model model) {
 		model.addAttribute("marca", new Marca());
 		return "marcas/formulario";
 	}
-	
+	//Endpoint listo: http://localhost:8080/marcas/guardar
 	@PostMapping("/guardar")
 	public String guardarMarca(@ModelAttribute Marca marca, RedirectAttributes flash) {
 		marcaService.guardar(marca);
