@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nueva Marca</title>
+</head>
+<body>
+
+<h2>Nueva Marca</h2>
+
+<form th:action="@{/marcas/guardar}" th:object="${marca}" method="post">
+
+    <div>
+        <label>Marca:</label>
+        <input type="text" th:field="*{marcaDesc}" required>
+    </div>
+
+    <br>
+
+    <button type="submit">Guardar</button>
+    <a th:href="@{/marcas}">Cancelar</a>
+
+</form>
+
+</body>
+</html>
