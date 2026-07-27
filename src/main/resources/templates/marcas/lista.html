@@ -16,10 +16,16 @@
     <tr>
         <th>ID</th>
         <th>Marca</th>
+		<th>Acciones</th>
     </tr>
     <tr th:each="marca : ${marcas}">
         <td th:text="${marca.idMarca}"></td>
         <td th:text="${marca.marcaDesc}"></td>
+		<td>
+			<a
+				th:ref="@{/marcas/editar/{id}(id=${marca.id})}"
+			>Editar</a>
+		</td>
     </tr>
 </table>
 
