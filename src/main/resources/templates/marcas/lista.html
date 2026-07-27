@@ -9,8 +9,21 @@
 <h2>Listado de Marcas</h2>
 
 <a th:href="@{/marcas/nuevo}">Nueva Marca</a>
-
 <br><br>
+<form th:action="@{/marcas}" method="get">
+	<input
+		type="text"
+		name="texto"
+		th:value="${texto}"
+		placeholder="Buscar marca"
+	>
+	<button type="submit">
+		Buscar
+	</button>
+	<a th:href="@{/marcas}">Limpiar</a>
+</form>
+
+<br>
 
 <table border="1">
     <tr>
