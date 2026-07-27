@@ -41,8 +41,22 @@ public class MarcaController {
 	//Endpoint listo: http://localhost:8080/marcas/guardar
 	@PostMapping("/guardar")
 	public String guardarMarca(@ModelAttribute Marca marca, RedirectAttributes flash) {
+		
+		boolean nuevoReg = marca.getIdMarca() == null;
+		
 		marcaService.guardar(marca);
-		flash.addFlashAttribute("mensaje","Marca registrada!.");
+		
+		if(nuevoReg) {
+			flash.addFlashAttribute(
+					"mensaje",
+					"Marca nueva registrada!"
+			);
+		}else {
+			flash.addFlashAttribute(
+					"mensaje",
+					"Marca "+marca.getIdMarca()+" actualizada!"
+			);
+		}
 		return "redirect:/marcas";
 	}
 	
