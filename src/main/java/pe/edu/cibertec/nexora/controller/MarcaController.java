@@ -46,7 +46,7 @@ public class MarcaController {
 		return "redirect:/marcas";
 	}
 	
-	
+	//Endpoint listo: http://localhost:8080/marcas/editar/
 	@GetMapping("/editar/{id}")
 	public String editarMarca(@PathVariable Integer id, Model model) {
 		model.addAttribute("marca", marcaService.buscarPorId(id));
