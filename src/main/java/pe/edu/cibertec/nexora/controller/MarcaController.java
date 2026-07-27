@@ -20,7 +20,7 @@ public class MarcaController {
 	@Autowired
 	private MarcaService marcaService;
 	
-	//Endpoint listo: http://localhost:8080/marcas
+	//Endpoint implementado: GET /marcas
 	@GetMapping
 	public String listarMarcas(@RequestParam(required=false)String texto,Model model) {
 		if(texto==null || texto.isBlank())
@@ -31,14 +31,14 @@ public class MarcaController {
 		return "/marcas/lista";
 	}
 	
-	//Endpoint listo: http://localhost:8080/marcas/nuevo
+	//Endpoint implementado: GET /marcas/nuevo
 	@GetMapping("/nuevo")
 	public String nuevaMarca(Model model) {
 		model.addAttribute("marca", new Marca());
 		return "marcas/formulario";
 	}
 	
-	//Endpoint listo: http://localhost:8080/marcas/guardar
+	//Endpoint implementado: POST /marcas/guardar
 	@PostMapping("/guardar")
 	public String guardarMarca(@ModelAttribute Marca marca, RedirectAttributes flash) {
 		
@@ -60,13 +60,21 @@ public class MarcaController {
 		return "redirect:/marcas";
 	}
 	
-	//Endpoint listo: http://localhost:8080/marcas/editar/
+	//Endpoint implementado: GET /marcas/editar/{id}
 	@GetMapping("/editar/{id}")
 	public String editarMarca(@PathVariable Integer id, Model model) {
 		model.addAttribute("marca", marcaService.buscarPorId(id));
 		return "marcas/formulario";
 	}
-	
-	
+	//Endpoint implementado: POST /marcas/eliminar/{id}
+	@PostMapping("/eliminar/{id}")
+	public String eliminarMarca(@PathVariable Integer id, RedirectAttributes flash) {
+		marcaService.eliminar(id);
+		flash.addFlashAttribute(
+				"mensaje",
+				"Marca eliminada!"
+		);
+		return "redirect:/marcas";
+	}
 	
 }
