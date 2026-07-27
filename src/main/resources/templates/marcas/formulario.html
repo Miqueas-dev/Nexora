@@ -2,24 +2,31 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Nueva Marca</title>
+    <title>Mantenimiento Marca</title>
 </head>
 <body>
 
-<h2>Nueva Marca</h2>
+<h2>
+	<span th:if="${marca.id == null}">Nueva Marca</span>
+	<span th:unless="${marca.id == null}">Actualizar Marca</span>
+</h2>
 
 <form th:action="@{/marcas/guardar}" th:object="${marca}" method="post">
-
+	<input type="hidden"
+			th:field="*{id}"
+	>
     <div>
         <label>Marca:</label>
         <input type="text" th:field="*{marcaDesc}" required>
     </div>
-
+	
     <br>
-
-    <button type="submit">Guardar</button>
-    <a th:href="@{/marcas}">Cancelar</a>
-
+	
+    <button type="submit">
+		<span th:if="${marca.id == null}">Guardar</span>
+		<span th:unless="${marca.id == null}">Actualizar</span>
+	</button>
+    <a th:href="@{/marcas}">Regresar</a>
 </form>
 
 </body>
