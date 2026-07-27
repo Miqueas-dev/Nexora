@@ -20,6 +20,7 @@ public class MarcaController {
 	@Autowired
 	private MarcaService marcaService;
 	
+	//Endpoint listo: http://localhost:8080/marcas
 	@GetMapping
 	public String listarMarcas(@RequestParam(required=false)String texto,Model model) {
 		if(texto==null || texto.isBlank())

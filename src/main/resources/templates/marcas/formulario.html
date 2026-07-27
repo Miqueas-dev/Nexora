@@ -7,13 +7,13 @@
 <body>
 
 <h2>
-	<span th:if="${marca.id == null}">Nueva Marca</span>
-	<span th:unless="${marca.id == null}">Actualizar Marca</span>
+	<span th:if="${marca.idMarca == null}">Nueva Marca</span>
+	<span th:unless="${marca.idMarca == null}">Actualizar Marca</span>
 </h2>
 
 <form th:action="@{/marcas/guardar}" th:object="${marca}" method="post">
 	<input type="hidden"
-			th:field="*{id}"
+			th:field="*{idMarca}"
 	>
     <div>
         <label>Marca:</label>
@@ -23,8 +23,8 @@
     <br>
 	
     <button type="submit">
-		<span th:if="${marca.id == null}">Guardar</span>
-		<span th:unless="${marca.id == null}">Actualizar</span>
+		<span th:if="${marca.idMarca == null}">Guardar</span>
+		<span th:unless="${marca.idMarca == null}">Actualizar</span>
 	</button>
     <a th:href="@{/marcas}">Regresar</a>
 </form>
