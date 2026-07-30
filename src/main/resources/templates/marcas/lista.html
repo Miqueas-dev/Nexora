@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Marcas</title>
+</head>
+<body>
+
+<h2>Listado de Marcas</h2>
+
+<a th:href="@{/marcas/nuevo}">Nueva Marca</a>
+<br><br>
+<form th:action="@{/marcas}" method="get">
+	<input
+		type="text"
+		name="texto"
+		th:value="${texto}"
+		placeholder="Buscar marca"
+	>
+	<button type="submit">
+		Buscar
+	</button>
+	<a th:href="@{/marcas}">Limpiar</a>
+</form>
+
+<br>
+
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Marca</th>
+		<th>Acciones</th>
+    </tr>
+    <tr th:each="marca : ${marcas}">
+        <td th:text="${marca.idMarca}"></td>
+        <td th:text="${marca.marcaDesc}"></td>
+		<td>
+			<a
+				th:href="@{/marcas/editar/{id}(id=${marca.idMarca})}"
+			>Editar</a>
+		</td>
+		<td>
+			<form
+				th:action="@{/marcas/eliminar/{id}(id=${marca.idMarca})}"
+				method="post"
+				onsubmit="return confirm('¿Eliminar Marca?')"
+			>
+				<button type="submit">Eliminar</button>
+			</form>
+		</td>
+    </tr>
+</table>
+		<h3
+			th:if="${mensaje}" th:text="${mensaje}"
+		>
+		</h3>
+</body>
+</html>

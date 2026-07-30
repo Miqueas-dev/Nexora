@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mantenimiento Marca</title>
+</head>
+<body>
+
+<h2>
+	<span th:if="${marca.idMarca == null}">Nueva Marca</span>
+	<span th:unless="${marca.idMarca == null}">Actualizar Marca</span>
+</h2>
+
+<form th:action="@{/marcas/guardar}" th:object="${marca}" method="post">
+	<input type="hidden"
+			th:field="*{idMarca}"
+	>
+    <div>
+        <label>Marca:</label>
+        <input type="text" th:field="*{marcaDesc}" required>
+    </div>
+	
+    <br>
+	
+    <button type="submit">
+		<span th:if="${marca.idMarca == null}">Guardar</span>
+		<span th:unless="${marca.idMarca == null}">Actualizar</span>
+	</button>
+    <a th:href="@{/marcas}">Regresar</a>
+</form>
+
+</body>
+</html>
