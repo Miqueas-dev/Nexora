@@ -11,6 +11,9 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 @Table(name="tb_usuarios")
@@ -45,6 +48,12 @@ public class Usuario {
 	@Column(name="usu_fecnac",nullable=false)
 	private Date fecnacUsuario;
 	
-	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_tipo", nullable = false)
+	private Tipo tipo;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_estado", nullable = false)
+	private Estado estado;
 	
 }
