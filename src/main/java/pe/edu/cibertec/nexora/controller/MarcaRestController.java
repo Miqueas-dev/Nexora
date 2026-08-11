@@ -2,8 +2,10 @@ package pe.edu.cibertec.nexora.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,6 +28,18 @@ public class MarcaRestController {
 		List<Marca> marcas=marcaService.listar();
 		return ResponseEntity.ok(marcas);
 	}
+	//Endpoint: GET /api/marcas/{id}
+	@GetMapping("/{id}")
+	public ResponseEntity<?> buscarMarca(@PathVariable Integer id){
+		Marca marca = marcaService.buscarPorId(id);
+		if (marca==null)
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("La marca con ID "+id+" no existe.");
+		return ResponseEntity.ok(marca);
+	}
+	
+	
+	
+	
 	
 	
 }
