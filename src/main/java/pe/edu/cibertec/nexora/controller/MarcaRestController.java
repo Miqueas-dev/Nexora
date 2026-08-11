@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,7 +57,7 @@ public class MarcaRestController {
 		
 		Marca marcaExistente = marcaService.buscarPorId(id);
 		if (marcaExistente==null) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("La marca con ID "+id+" no existe.");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("[Proceso de actualizado] La marca con ID "+id+" no existe.");
 		}else {
 			marca.setIdMarca(id);
 			Marca marcaActualizada = marcaService.guardar(marca);
@@ -64,6 +65,18 @@ public class MarcaRestController {
 		}
 	}
 	
-	
+	//Endpoint: DELETE /api/marcas/{id}
+	@DeleteMapping("/{id}")
+	public ResponseEntity<?> eliminarMarca(@PathVariable Integer id){
+		
+		Marca marcaConsultada = marcaService.buscarPorId(id);
+		if (marcaConsultada == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("[Proceso de borrado] La marca con ID "+id+" no existe.");
+		}else {
+			marcaService.eliminar(id);
+			return ResponseEntity.ok("Marca eliminada!");
+		}
+
+	}
 	
 }
