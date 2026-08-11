@@ -7,8 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import pe.edu.cibertec.nexora.entity.Marca;
@@ -48,7 +50,19 @@ public class MarcaRestController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(nuevaMarca);
 	}
 	
-	
+	//Endpoint: PUT /api/marcas/{id}
+	@PutMapping("/{id}")
+	public ResponseEntity<?> actualizarMarca(@PathVariable Integer id, @RequestBody Marca marca){
+		
+		Marca marcaExistente = marcaService.buscarPorId(id);
+		if (marcaExistente==null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("La marca con ID "+id+" no existe.");
+		}else {
+			marca.setIdMarca(id);
+			Marca marcaActualizada = marcaService.guardar(marca);
+			return ResponseEntity.ok(marcaActualizada);
+		}
+	}
 	
 	
 	
