@@ -2,8 +2,10 @@ package pe.edu.cibertec.nexora.controller;
 
 import java.util.List;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import pe.edu.cibertec.nexora.entity.Estado;
-import pe.edu.cibertec.nexora.entity.Marca;
 import pe.edu.cibertec.nexora.service.EstadoService;
 
 @RestController
@@ -63,6 +64,25 @@ public class EstadoRestController {
 			estado.setIdEstado(id);
 			Estado estadoActualizado = estadoService.guardar(estado);
 			return ResponseEntity.ok(estadoActualizado);
+		}
+	}
+
+	// Endpoint: DELETE /api/estados/{id}
+	@DeleteMapping("/{id}")
+	public ResponseEntity<?> eliminarEstado(@PathVariable Integer id) {
+
+		Estado estadoConsultado = estadoService.buscarPorId(id);
+		if (estadoConsultado == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body("[Proceso de borrado] El estado con ID " + id + " no existe.");
+		} else {
+			try {
+				estadoService.eliminar(id);
+				return ResponseEntity.ok("Estado eliminado!");
+			} catch (DataIntegrityViolationException e) {
+				return ResponseEntity.status(HttpStatus.CONFLICT).body("[Proceso de borrado] El estado con ID " + id
+						+ " no se puede eliminar porque está en uso por uno o más usuarios.");
+			}
 		}
 	}
 
