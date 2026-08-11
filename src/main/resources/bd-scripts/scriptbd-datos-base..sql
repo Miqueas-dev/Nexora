@@ -39,3 +39,51 @@ VALUES (
     1,
     1
 );
+
+-- ============================================
+-- TIPOS
+-- ============================================
+
+INSERT INTO tb_tipos (tipo_desc) VALUES
+('Administrador'),
+('Cliente');
+
+-- ============================================
+-- USUARIOS DE PRUEBA
+-- ============================================
+
+INSERT INTO tb_usuarios (
+    usu_dni,
+    usu_nombre,
+    usu_apellidopaterno,
+    usu_apellidomaterno,
+    usu_correo,
+    usu_clave,
+    usu_fecnac,
+    id_tipo,
+    id_estado
+)
+VALUES
+(
+    '74851236',
+    'Alexander',
+    'Perez',
+    'Gomez',
+    'alexander.perez@nexora.com',
+    '12345678',
+    '2004-05-15',
+    1,
+    1
+),
+(
+    '63527481',
+    'Carlos',
+    'Ramirez',
+    'Torres',
+    'carlos.ramirez@nexora.com',
+    '87654321',
+    '2003-11-22',
+    2,
+    1
+);
+
