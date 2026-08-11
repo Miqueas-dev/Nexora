@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,6 +30,7 @@ public class MarcaRestController {
 		List<Marca> marcas=marcaService.listar();
 		return ResponseEntity.ok(marcas);
 	}
+	
 	//Endpoint: GET /api/marcas/{id}
 	@GetMapping("/{id}")
 	public ResponseEntity<?> buscarMarca(@PathVariable Integer id){
@@ -37,6 +40,13 @@ public class MarcaRestController {
 		return ResponseEntity.ok(marca);
 	}
 	
+	//Endpoint: POST /api/marcas
+	@PostMapping
+	public ResponseEntity<Marca> registrarMarca(@RequestBody Marca marca){
+		marca.setIdMarca(null);
+		Marca nuevaMarca = marcaService.guardar(marca);
+		return ResponseEntity.status(HttpStatus.CREATED).body(nuevaMarca);
+	}
 	
 	
 	
