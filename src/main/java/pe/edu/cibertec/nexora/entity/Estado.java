@@ -12,7 +12,6 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "tb_estados")
-
 @Getter
 @Setter
 @NoArgsConstructor
