@@ -14,6 +14,7 @@ import lombok.Setter;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name="tb_usuarios")
@@ -42,7 +43,8 @@ public class Usuario {
 	@Column(name="usu_correo",length=45,nullable=false,unique=true)
 	private String correoUsuario;
 	
-	@Column(name="usu_clave",length=8,nullable=false)
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+	@Column(name = "usu_clave", nullable = false)
 	private String claveUsuario;
 	
 	@Column(name="usu_fecnac",nullable=false)
