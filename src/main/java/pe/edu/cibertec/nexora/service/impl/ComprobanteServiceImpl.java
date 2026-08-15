@@ -3,8 +3,8 @@ package pe.edu.cibertec.nexora.service.impl;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,210 +28,374 @@ import pe.edu.cibertec.nexora.service.ComprobanteService;
 @Service
 public class ComprobanteServiceImpl implements ComprobanteService {
 
-    @Autowired
-    private ComprobanteRepository comprobanteRepository;
+	@Autowired
+	private ComprobanteRepository comprobanteRepository;
 
-    @Autowired
-    private DetalleComprobanteRepository detalleComprobanteRepository;
+	@Autowired
+	private DetalleComprobanteRepository detalleComprobanteRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+	@Autowired
+	private UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private ProductoRepository productoRepository;
+	@Autowired
+	private ProductoRepository productoRepository;
 
-    @Override
-    @Transactional
-    public ComprobanteResponseDTO registrar(VentaRequestDTO venta) {
-        if (venta == null) {
-            throw new IllegalArgumentException(
-                    "La venta no puede ser nula.");
-        }
+	/*
+	 * REGISTRA UNA VENTA.
+	 *
+	 * El cliente viene seleccionado desde el formulario de venta. El vendedor se
+	 * obtiene del usuario autenticado mediante su correo.
+	 */
+	@Override
+	@Transactional
+	public ComprobanteResponseDTO registrar(VentaRequestDTO venta, String correoVendedor) {
 
-        if (venta.getIdUsuario() == null) {
-            throw new IllegalArgumentException(
-                    "Debe indicar el usuario de la venta.");
-        }
+		// =========================
+		// VALIDAR VENTA
+		// =========================
 
-        Usuario usuario = usuarioRepository.findById(venta.getIdUsuario())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "El Usuario con ID "
-                                + venta.getIdUsuario()
-                                + " no existe."));
+		if (venta == null) {
+			throw new IllegalArgumentException("La venta no puede ser nula.");
+		}
 
-        if (venta.getDetalles() == null
-                || venta.getDetalles().isEmpty()) {
-            throw new IllegalArgumentException(
-                    "La venta debe contener al menos un detalle.");
-        }
+		if (venta.getIdUsuario() == null) {
+			throw new IllegalArgumentException("Debe indicar el cliente de la venta.");
+		}
 
-        Map<Integer, Integer> cantidades = new LinkedHashMap<>();
+		if (correoVendedor == null || correoVendedor.isBlank()) {
 
-        for (DetalleVentaRequestDTO detalle : venta.getDetalles()) {
-            if (detalle == null || detalle.getIdProducto() == null) {
-                throw new IllegalArgumentException(
-                        "Cada detalle debe indicar un producto.");
-            }
+			throw new IllegalArgumentException("No se pudo identificar al vendedor.");
+		}
 
-            if (detalle.getCantidad() <= 0) {
-                throw new IllegalArgumentException(
-                        "La cantidad debe ser mayor que cero.");
-            }
+		// =========================
+		// VALIDAR CLIENTE
+		// =========================
 
-            try {
-                cantidades.merge(
-                        detalle.getIdProducto(),
-                        detalle.getCantidad(),
-                        (actual, nueva) -> Math.addExact(actual, nueva));
-            } catch (ArithmeticException e) {
-                throw new IllegalArgumentException(
-                        "La cantidad total solicitada es demasiado grande.",
-                        e);
-            }
-        }
+		Usuario cliente = usuarioRepository.findById(venta.getIdUsuario()).orElseThrow(
+				() -> new IllegalArgumentException("El Usuario con ID " + venta.getIdUsuario() + " no existe."));
 
-        Map<Integer, Producto> productos = new LinkedHashMap<>();
-        List<Integer> idsProducto = new ArrayList<>(cantidades.keySet());
-        idsProducto.sort(Integer::compareTo);
+		if (cliente.getTipo() == null || cliente.getTipo().getDescripcion() == null
+				|| !cliente.getTipo().getDescripcion().equalsIgnoreCase("Cliente")) {
 
-        for (Integer idProducto : idsProducto) {
-            Producto producto = productoRepository
-                    .buscarPorIdParaVenta(idProducto)
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "El Producto con ID "
-                                    + idProducto
-                                    + " no existe."));
-            productos.put(idProducto, producto);
-        }
+			throw new IllegalArgumentException("El usuario seleccionado no es un cliente.");
+		}
 
-        for (Map.Entry<Integer, Integer> cantidad : cantidades.entrySet()) {
-            Producto producto = productos.get(cantidad.getKey());
-            if (cantidad.getValue() > producto.getStockProducto()) {
-                throw new IllegalArgumentException(
-                        "Stock insuficiente para el producto "
-                                + producto.getDescripProducto() + ".");
-            }
-        }
+		if (cliente.getEstado() == null || cliente.getEstado().getDescripcion() == null
+				|| !cliente.getEstado().getDescripcion().equalsIgnoreCase("Activo")) {
 
-        Comprobante comprobante = new Comprobante();
-        comprobante.setFechaComprobante(
-                new Date(System.currentTimeMillis()));
-        comprobante.setUsuario(usuario);
-        comprobante = comprobanteRepository.save(comprobante);
+			throw new IllegalArgumentException("El cliente se encuentra inactivo.");
+		}
 
-        BigDecimal total = BigDecimal.ZERO;
-        List<DetalleComprobanteResponseDTO> detallesRespuesta =
-                new ArrayList<>();
+		// =========================
+		// VALIDAR VENDEDOR
+		// =========================
 
-        for (DetalleVentaRequestDTO detalleVenta : venta.getDetalles()) {
-            Producto producto = productos.get(
-                    detalleVenta.getIdProducto());
+		Usuario vendedor = usuarioRepository.findByCorreoUsuario(correoVendedor)
+				.orElseThrow(() -> new IllegalArgumentException("El vendedor no existe."));
 
-            DetalleComprobante detalle = new DetalleComprobante();
-            detalle.setCantidadProducto(detalleVenta.getCantidad());
-            detalle.setPrecioVenta(producto.getPrecioProducto());
-            detalle.setComprobante(comprobante);
-            detalle.setProducto(producto);
-            detalle = detalleComprobanteRepository.save(detalle);
+		if (vendedor.getTipo() == null || vendedor.getTipo().getDescripcion() == null
+				|| !vendedor.getTipo().getDescripcion().equalsIgnoreCase("Vendedor")) {
 
-            BigDecimal subtotal = producto.getPrecioProducto()
-                    .multiply(BigDecimal.valueOf(
-                            detalleVenta.getCantidad()));
-            total = total.add(subtotal);
-            detallesRespuesta.add(crearDetalleRespuesta(
-                    detalle,
-                    subtotal));
-        }
+			throw new IllegalArgumentException("El usuario autenticado no es un vendedor.");
+		}
 
-        for (Map.Entry<Integer, Integer> cantidad : cantidades.entrySet()) {
-            Producto producto = productos.get(cantidad.getKey());
-            producto.setStockProducto(
-                    producto.getStockProducto() - cantidad.getValue());
-            productoRepository.save(producto);
-        }
+		if (vendedor.getEstado() == null || vendedor.getEstado().getDescripcion() == null
+				|| !vendedor.getEstado().getDescripcion().equalsIgnoreCase("Activo")) {
 
-        return crearRespuesta(
-                comprobante,
-                detallesRespuesta,
-                total);
-    }
+			throw new IllegalArgumentException("El vendedor se encuentra inactivo.");
+		}
 
-    private ComprobanteResponseDTO crearRespuesta(
-            Comprobante comprobante,
-            List<DetalleComprobanteResponseDTO> detalles,
-            BigDecimal total) {
+		// =========================
+		// VALIDAR DETALLES
+		// =========================
 
-        ComprobanteResponseDTO respuesta = new ComprobanteResponseDTO();
-        respuesta.setNumComprobante(comprobante.getNumComprobante());
-        respuesta.setFechaComprobante(comprobante.getFechaComprobante());
-        respuesta.setUsuario(comprobante.getUsuario());
-        respuesta.setTotal(total);
-        respuesta.setDetalles(detalles);
-        return respuesta;
-    }
+		if (venta.getDetalles() == null || venta.getDetalles().isEmpty()) {
 
-    private DetalleComprobanteResponseDTO crearDetalleRespuesta(
-            DetalleComprobante detalle,
-            BigDecimal subtotal) {
+			throw new IllegalArgumentException("La venta debe contener al menos un detalle.");
+		}
 
-        DetalleComprobanteResponseDTO respuesta =
-                new DetalleComprobanteResponseDTO();
-        respuesta.setIdDetalle(detalle.getIdDetalle());
-        respuesta.setIdProducto(
-                detalle.getProducto().getIdProducto());
-        respuesta.setDescripcionProducto(
-                detalle.getProducto().getDescripProducto());
-        respuesta.setCantidad(detalle.getCantidadProducto());
-        respuesta.setPrecioVenta(detalle.getPrecioVenta());
-        respuesta.setSubtotal(subtotal);
-        return respuesta;
-    }
+		/*
+		 * Agrupamos las cantidades por producto.
+		 *
+		 * Si Angular envía el mismo producto varias veces, validamos el stock
+		 * considerando la suma total.
+		 */
+		Map<Integer, Integer> cantidades = new LinkedHashMap<>();
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ComprobanteResponseDTO> listar() {
-        List<ComprobanteResponseDTO> respuesta = new ArrayList<>();
-        for (Comprobante comprobante : comprobanteRepository.findAll()) {
-            respuesta.add(convertirComprobante(comprobante));
-        }
-        return respuesta;
-    }
+		for (DetalleVentaRequestDTO detalle : venta.getDetalles()) {
 
-    @Override
-    @Transactional(readOnly = true)
-    public ComprobanteResponseDTO buscarPorId(Integer id) {
-        Comprobante comprobante = comprobanteRepository
-                .findById(id)
-                .orElse(null);
-        if (comprobante == null) {
-            return null;
-        }
-        return convertirComprobante(comprobante);
-    }
+			if (detalle == null || detalle.getIdProducto() == null) {
 
-    private ComprobanteResponseDTO convertirComprobante(
-            Comprobante comprobante) {
+				throw new IllegalArgumentException("Cada detalle debe indicar un producto.");
+			}
 
-        List<DetalleComprobante> detalles = detalleComprobanteRepository
-                .findByComprobanteNumComprobante(
-                        comprobante.getNumComprobante());
-        List<DetalleComprobanteResponseDTO> detallesRespuesta =
-                new ArrayList<>();
-        BigDecimal total = BigDecimal.ZERO;
+			if (detalle.getCantidad() <= 0) {
 
-        for (DetalleComprobante detalle : detalles) {
-            BigDecimal subtotal = detalle.getPrecioVenta()
-                    .multiply(BigDecimal.valueOf(
-                            detalle.getCantidadProducto()));
-            total = total.add(subtotal);
-            detallesRespuesta.add(crearDetalleRespuesta(
-                    detalle,
-                    subtotal));
-        }
+				throw new IllegalArgumentException("La cantidad debe ser mayor que cero.");
+			}
 
-        return crearRespuesta(
-                comprobante,
-                detallesRespuesta,
-                total);
-    }
+			try {
+
+				cantidades.merge(detalle.getIdProducto(), detalle.getCantidad(),
+						(actual, nueva) -> Math.addExact(actual, nueva));
+
+			} catch (ArithmeticException e) {
+
+				throw new IllegalArgumentException("La cantidad total solicitada " + "es demasiado grande.", e);
+			}
+		}
+
+		// =========================
+		// OBTENER PRODUCTOS
+		// =========================
+
+		Map<Integer, Producto> productos = new LinkedHashMap<>();
+
+		List<Integer> idsProducto = new ArrayList<>(cantidades.keySet());
+
+		idsProducto.sort(Integer::compareTo);
+
+		for (Integer idProducto : idsProducto) {
+
+			Producto producto = productoRepository.buscarPorIdParaVenta(idProducto).orElseThrow(
+					() -> new IllegalArgumentException("El Producto con ID " + idProducto + " no existe."));
+
+			// Producto debe estar activo
+			if (producto.getEstado() == null || producto.getEstado().getDescripcion() == null
+					|| !producto.getEstado().getDescripcion().equalsIgnoreCase("Activo")) {
+
+				throw new IllegalArgumentException(
+						"El producto " + producto.getDescripProducto() + " se encuentra inactivo.");
+			}
+
+			productos.put(idProducto, producto);
+		}
+
+		// =========================
+		// VALIDAR STOCK
+		// =========================
+
+		for (Map.Entry<Integer, Integer> cantidad : cantidades.entrySet()) {
+
+			Producto producto = productos.get(cantidad.getKey());
+
+			if (cantidad.getValue() > producto.getStockProducto()) {
+
+				throw new IllegalArgumentException(
+						"Stock insuficiente para el producto " + producto.getDescripProducto() + ".");
+			}
+		}
+
+		// =========================
+		// CREAR COMPROBANTE
+		// =========================
+
+		Comprobante comprobante = new Comprobante();
+
+		comprobante.setFechaComprobante(new Date(System.currentTimeMillis()));
+
+		// Cliente
+		comprobante.setUsuario(cliente);
+
+		// Vendedor autenticado
+		comprobante.setVendedor(vendedor);
+
+		comprobante = comprobanteRepository.save(comprobante);
+
+		// =========================
+		// CREAR DETALLES
+		// =========================
+
+		BigDecimal total = BigDecimal.ZERO;
+
+		List<DetalleComprobanteResponseDTO> detallesRespuesta = new ArrayList<>();
+
+		for (DetalleVentaRequestDTO detalleVenta : venta.getDetalles()) {
+
+			Producto producto = productos.get(detalleVenta.getIdProducto());
+
+			DetalleComprobante detalle = new DetalleComprobante();
+
+			detalle.setCantidadProducto(detalleVenta.getCantidad());
+
+			/*
+			 * Guardamos el precio actual.
+			 *
+			 * Si el precio del producto cambia después, la venta conserva su precio
+			 * histórico.
+			 */
+			detalle.setPrecioVenta(producto.getPrecioProducto());
+
+			detalle.setComprobante(comprobante);
+
+			detalle.setProducto(producto);
+
+			detalle = detalleComprobanteRepository.save(detalle);
+
+			BigDecimal subtotal = producto.getPrecioProducto().multiply(BigDecimal.valueOf(detalleVenta.getCantidad()));
+
+			total = total.add(subtotal);
+
+			detallesRespuesta.add(crearDetalleRespuesta(detalle, subtotal));
+		}
+
+		// =========================
+		// DESCONTAR STOCK
+		// =========================
+
+		for (Map.Entry<Integer, Integer> cantidad : cantidades.entrySet()) {
+
+			Producto producto = productos.get(cantidad.getKey());
+
+			producto.setStockProducto(producto.getStockProducto() - cantidad.getValue());
+
+			productoRepository.save(producto);
+		}
+
+		return crearRespuesta(comprobante, detallesRespuesta, total);
+	}
+
+	/*
+	 * CONSTRUYE LA RESPUESTA DEL COMPROBANTE.
+	 */
+	private ComprobanteResponseDTO crearRespuesta(Comprobante comprobante, List<DetalleComprobanteResponseDTO> detalles,
+			BigDecimal total) {
+
+		ComprobanteResponseDTO respuesta = new ComprobanteResponseDTO();
+
+		respuesta.setNumComprobante(comprobante.getNumComprobante());
+
+		respuesta.setFechaComprobante(comprobante.getFechaComprobante());
+
+		// Cliente
+		respuesta.setUsuario(comprobante.getUsuario());
+
+		// Vendedor
+		respuesta.setVendedor(comprobante.getVendedor());
+
+		respuesta.setTotal(total);
+
+		respuesta.setDetalles(detalles);
+
+		return respuesta;
+	}
+
+	/*
+	 * CONSTRUYE LA RESPUESTA DE CADA DETALLE.
+	 */
+	private DetalleComprobanteResponseDTO crearDetalleRespuesta(DetalleComprobante detalle, BigDecimal subtotal) {
+
+		DetalleComprobanteResponseDTO respuesta = new DetalleComprobanteResponseDTO();
+
+		respuesta.setIdDetalle(detalle.getIdDetalle());
+
+		respuesta.setIdProducto(detalle.getProducto().getIdProducto());
+
+		respuesta.setDescripcionProducto(detalle.getProducto().getDescripProducto());
+
+		respuesta.setCantidad(detalle.getCantidadProducto());
+
+		respuesta.setPrecioVenta(detalle.getPrecioVenta());
+
+		respuesta.setSubtotal(subtotal);
+
+		return respuesta;
+	}
+
+	/*
+	 * ADMINISTRADOR: LISTA TODOS LOS COMPROBANTES.
+	 */
+	@Override
+	@Transactional(readOnly = true)
+	public List<ComprobanteResponseDTO> listar() {
+
+		List<ComprobanteResponseDTO> respuesta = new ArrayList<>();
+
+		for (Comprobante comprobante : comprobanteRepository.findAll()) {
+
+			respuesta.add(convertirComprobante(comprobante));
+		}
+
+		return respuesta;
+	}
+
+	/*
+	 * ADMINISTRADOR: BUSCA CUALQUIER COMPROBANTE POR ID.
+	 */
+	@Override
+	@Transactional(readOnly = true)
+	public ComprobanteResponseDTO buscarPorId(Integer id) {
+
+		Comprobante comprobante = comprobanteRepository.findById(id).orElse(null);
+
+		if (comprobante == null) {
+			return null;
+		}
+
+		return convertirComprobante(comprobante);
+	}
+
+	/*
+	 * CONVIERTE UN COMPROBANTE EXISTENTE EN SU DTO DE RESPUESTA.
+	 */
+	private ComprobanteResponseDTO convertirComprobante(Comprobante comprobante) {
+
+		List<DetalleComprobante> detalles = detalleComprobanteRepository
+				.findByComprobanteNumComprobante(comprobante.getNumComprobante());
+
+		List<DetalleComprobanteResponseDTO> detallesRespuesta = new ArrayList<>();
+
+		BigDecimal total = BigDecimal.ZERO;
+
+		for (DetalleComprobante detalle : detalles) {
+
+			BigDecimal subtotal = detalle.getPrecioVenta().multiply(BigDecimal.valueOf(detalle.getCantidadProducto()));
+
+			total = total.add(subtotal);
+
+			detallesRespuesta.add(crearDetalleRespuesta(detalle, subtotal));
+		}
+
+		return crearRespuesta(comprobante, detallesRespuesta, total);
+	}
+
+	/*
+	 * CLIENTE: LISTA SOLO SUS PROPIAS COMPRAS.
+	 */
+	@Override
+	@Transactional(readOnly = true)
+	public List<ComprobanteResponseDTO> listarPorCliente(String correo) {
+
+		Usuario cliente = usuarioRepository.findByCorreoUsuario(correo)
+				.orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado."));
+
+		List<ComprobanteResponseDTO> respuesta = new ArrayList<>();
+
+		for (Comprobante comprobante : comprobanteRepository.findByUsuarioIdUsuario(cliente.getIdUsuario())) {
+
+			respuesta.add(convertirComprobante(comprobante));
+		}
+
+		return respuesta;
+	}
+
+	/*
+	 * VENDEDOR: LISTA SOLO LAS VENTAS REALIZADAS POR EL VENDEDOR AUTENTICADO.
+	 */
+	@Override
+	@Transactional(readOnly = true)
+	public List<ComprobanteResponseDTO> listarPorVendedor(String correo) {
+
+		Usuario vendedor = usuarioRepository.findByCorreoUsuario(correo)
+				.orElseThrow(() -> new IllegalArgumentException("Vendedor no encontrado."));
+
+		List<ComprobanteResponseDTO> respuesta = new ArrayList<>();
+
+		for (Comprobante comprobante : comprobanteRepository.findByVendedorIdUsuario(vendedor.getIdUsuario())) {
+
+			respuesta.add(convertirComprobante(comprobante));
+		}
+
+		return respuesta;
+	}
 }
