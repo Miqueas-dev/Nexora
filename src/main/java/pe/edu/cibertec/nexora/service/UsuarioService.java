@@ -30,4 +30,6 @@ public interface UsuarioService {
 
 	/* LISTA USUARIOS FILTRADOS POR ID DE ESTADO (ACTIVO / INACTIVO) */
 	List<Usuario> listarPorEstado(Integer idEstado);
+	
+	List<Usuario> listarClientes();
 }

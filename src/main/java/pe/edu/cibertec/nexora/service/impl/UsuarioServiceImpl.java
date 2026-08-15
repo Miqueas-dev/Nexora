@@ -321,4 +321,12 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepository
                 .findByEstadoIdEstado(idEstado);
     }
+
+    @Override
+    public List<Usuario> listarClientes() {
+
+        return usuarioRepository
+                .findByTipoDescripcionIgnoreCase(
+                        "Cliente");
+    }
 }

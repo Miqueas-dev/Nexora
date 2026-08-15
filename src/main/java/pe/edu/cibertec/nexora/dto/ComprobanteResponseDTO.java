@@ -15,8 +15,16 @@ import pe.edu.cibertec.nexora.entity.Usuario;
 public class ComprobanteResponseDTO {
 
     private Integer numComprobante;
+
     private Date fechaComprobante;
+
+    // Cliente
     private Usuario usuario;
+
+    // Vendedor
+    private Usuario vendedor;
+
     private BigDecimal total;
+
     private List<DetalleComprobanteResponseDTO> detalles;
 }

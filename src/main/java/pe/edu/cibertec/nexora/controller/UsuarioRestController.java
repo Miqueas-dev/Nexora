@@ -84,6 +84,14 @@ public class UsuarioRestController {
 		}
 	}
 	
+	@GetMapping("/clientes")
+	public ResponseEntity<List<Usuario>> listarClientes() {
+
+	    return ResponseEntity.ok(
+	            _usuarioService.listarClientes()
+	    );
+	}
+	
 	/* POST /api/usuarios  →  REGISTRA UN NUEVO USUARIO.
 	VALIDACIONES: TIPO Y ESTADO DEBEN EXISTIR; DNI Y CORREO ÚNICOS. */
 	@PostMapping
