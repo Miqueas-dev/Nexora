@@ -28,10 +28,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
 
                 // LOGIN
-                .requestMatchers(
-                        HttpMethod.POST,
-                        "/api/auth/login")
-                .permitAll()
+            		.requestMatchers(
+            		        HttpMethod.POST,
+            		        "/api/auth/login",
+            		        "/api/auth/registro-cliente"
+            		)
+            		.permitAll()
 
                 .requestMatchers(
                         "/api/auth/me",

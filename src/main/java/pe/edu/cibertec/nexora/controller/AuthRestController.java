@@ -18,85 +18,213 @@ import org.springframework.web.bind.annotation.RestController;
 
 import pe.edu.cibertec.nexora.dto.LoginRequestDTO;
 import pe.edu.cibertec.nexora.dto.LoginResponseDTO;
+import pe.edu.cibertec.nexora.dto.RegistroClienteRequestDTO;
 import pe.edu.cibertec.nexora.entity.Usuario;
 import pe.edu.cibertec.nexora.repository.UsuarioRepository;
+import pe.edu.cibertec.nexora.service.UsuarioService;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthRestController {
 
-	private final AuthenticationManager authenticationManager;
+    private final AuthenticationManager
+            authenticationManager;
 
-	private final UsuarioRepository usuarioRepository;
+    private final UsuarioRepository
+            usuarioRepository;
 
-	public AuthRestController(AuthenticationManager authenticationManager, UsuarioRepository usuarioRepository) {
+    private final UsuarioService
+            usuarioService;
 
-		this.authenticationManager = authenticationManager;
+    public AuthRestController(
+            AuthenticationManager authenticationManager,
+            UsuarioRepository usuarioRepository,
+            UsuarioService usuarioService) {
 
-		this.usuarioRepository = usuarioRepository;
-	}
+        this.authenticationManager =
+                authenticationManager;
 
-	@PostMapping("/login")
-	public ResponseEntity<?> login(@RequestBody LoginRequestDTO login, HttpServletRequest request) {
+        this.usuarioRepository =
+                usuarioRepository;
 
-		try {
+        this.usuarioService =
+                usuarioService;
+    }
 
-			Authentication authentication = authenticationManager
-					.authenticate(new UsernamePasswordAuthenticationToken(login.getCorreo(), login.getClave()));
+    /*
+     * LOGIN PARA CUALQUIER USUARIO:
+     * ADMIN, VENDEDOR O CLIENTE.
+     */
+    @PostMapping("/login")
+    public ResponseEntity<?> login(
+            @RequestBody LoginRequestDTO login,
+            HttpServletRequest request) {
 
-			SecurityContext context = SecurityContextHolder.createEmptyContext();
+        try {
 
-			context.setAuthentication(authentication);
+            Authentication authentication =
+                    authenticationManager
+                            .authenticate(
+                                    new UsernamePasswordAuthenticationToken(
+                                            login.getCorreo(),
+                                            login.getClave()
+                                    )
+                            );
 
-			SecurityContextHolder.setContext(context);
+            SecurityContext context =
+                    SecurityContextHolder
+                            .createEmptyContext();
 
-			request.getSession(true).setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-					context);
+            context.setAuthentication(
+                    authentication);
 
-			Usuario usuario = usuarioRepository.findByCorreoUsuario(authentication.getName()).orElseThrow();
+            SecurityContextHolder
+                    .setContext(context);
 
-			String rol = authentication.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
+            request.getSession(true)
+                    .setAttribute(
+                            HttpSessionSecurityContextRepository
+                                    .SPRING_SECURITY_CONTEXT_KEY,
+                            context
+                    );
 
-			return ResponseEntity.ok(new LoginResponseDTO(usuario.getIdUsuario(), usuario.getNombreUsuario(),
-					usuario.getCorreoUsuario(), rol));
+            Usuario usuario =
+                    usuarioRepository
+                            .findByCorreoUsuario(
+                                    authentication.getName())
+                            .orElseThrow();
 
-		} catch (Exception e) {
+            String rol =
+                    authentication
+                            .getAuthorities()
+                            .iterator()
+                            .next()
+                            .getAuthority()
+                            .replace(
+                                    "ROLE_",
+                                    "");
 
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Correo o contraseña incorrectos.");
-		}
-	}
+            return ResponseEntity.ok(
+                    new LoginResponseDTO(
+                            usuario.getIdUsuario(),
+                            usuario.getNombreUsuario(),
+                            usuario.getCorreoUsuario(),
+                            rol
+                    )
+            );
 
-	@GetMapping("/me")
-	public ResponseEntity<?> usuarioActual(Authentication authentication) {
+        } catch (Exception e) {
 
-		if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity
+                    .status(
+                            HttpStatus.UNAUTHORIZED)
+                    .body(
+                            "Correo o contraseña incorrectos.");
+        }
+    }
 
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		}
+    /*
+     * REGISTRO PUBLICO.
+     *
+     * SIEMPRE CREA:
+     * Tipo = Cliente
+     * Estado = Activo
+     */
+    @PostMapping("/registro-cliente")
+    public ResponseEntity<?> registrarCliente(
+            @RequestBody
+            RegistroClienteRequestDTO registro) {
 
-		Usuario usuario = usuarioRepository.findByCorreoUsuario(authentication.getName()).orElse(null);
+        try {
 
-		if (usuario == null) {
+            Usuario cliente =
+                    usuarioService
+                            .registrarCliente(
+                                    registro);
 
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		}
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(cliente);
 
-		String rol = authentication.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
+        } catch (RuntimeException e) {
 
-		return ResponseEntity.ok(new LoginResponseDTO(usuario.getIdUsuario(), usuario.getNombreUsuario(),
-				usuario.getCorreoUsuario(), rol));
-	}
+            return ResponseEntity
+                    .badRequest()
+                    .body(e.getMessage());
+        }
+    }
 
-	@PostMapping("/logout")
-	public ResponseEntity<?> logout(HttpServletRequest request) {
+    /*
+     * DEVUELVE EL USUARIO
+     * DE LA SESION ACTUAL.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> usuarioActual(
+            Authentication authentication) {
 
-		if (request.getSession(false) != null) {
+        if (authentication == null
+                || !authentication
+                        .isAuthenticated()) {
 
-			request.getSession(false).invalidate();
-		}
+            return ResponseEntity
+                    .status(
+                            HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
 
-		SecurityContextHolder.clearContext();
+        Usuario usuario =
+                usuarioRepository
+                        .findByCorreoUsuario(
+                                authentication
+                                        .getName())
+                        .orElse(null);
 
-		return ResponseEntity.ok("Sesión cerrada correctamente.");
-	}
+        if (usuario == null) {
+
+            return ResponseEntity
+                    .status(
+                            HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
+        String rol =
+                authentication
+                        .getAuthorities()
+                        .iterator()
+                        .next()
+                        .getAuthority()
+                        .replace(
+                                "ROLE_",
+                                "");
+
+        return ResponseEntity.ok(
+                new LoginResponseDTO(
+                        usuario.getIdUsuario(),
+                        usuario.getNombreUsuario(),
+                        usuario.getCorreoUsuario(),
+                        rol
+                )
+        );
+    }
+
+    /*
+     * CIERRA LA SESION.
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(
+            HttpServletRequest request) {
+
+        if (request.getSession(false)
+                != null) {
+
+            request.getSession(false)
+                    .invalidate();
+        }
+
+        SecurityContextHolder
+                .clearContext();
+
+        return ResponseEntity.ok(
+                "Sesión cerrada correctamente.");
+    }
 }
