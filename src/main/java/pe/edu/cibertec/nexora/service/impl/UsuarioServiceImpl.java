@@ -7,16 +7,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
+import pe.edu.cibertec.nexora.dto.RegistroClienteRequestDTO;
 import pe.edu.cibertec.nexora.entity.Estado;
 import pe.edu.cibertec.nexora.entity.Tipo;
 import pe.edu.cibertec.nexora.entity.Usuario;
+import pe.edu.cibertec.nexora.repository.EstadoRepository;
+import pe.edu.cibertec.nexora.repository.TipoRepository;
 import pe.edu.cibertec.nexora.repository.UsuarioRepository;
 import pe.edu.cibertec.nexora.service.EstadoService;
 import pe.edu.cibertec.nexora.service.TipoService;
 import pe.edu.cibertec.nexora.service.UsuarioService;
 
 @Service
-public class UsuarioServiceImpl implements UsuarioService {
+public class UsuarioServiceImpl
+        implements UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -28,15 +32,25 @@ public class UsuarioServiceImpl implements UsuarioService {
     private EstadoService estadoService;
 
     @Autowired
+    private TipoRepository tipoRepository;
+
+    @Autowired
+    private EstadoRepository estadoRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // Lista todos los usuarios registrados
+    /* LISTA TODOS LOS USUARIOS */
     @Override
     public List<Usuario> listar() {
+
         return usuarioRepository.findAll();
     }
 
-    // Registra o actualiza un usuario
+    /*
+     * REGISTRA O ACTUALIZA UN USUARIO.
+     * ESTE METODO ES USADO POR EL ADMINISTRADOR.
+     */
     @Override
     @Transactional
     public Usuario guardar(Usuario usuario) {
@@ -121,7 +135,8 @@ public class UsuarioServiceImpl implements UsuarioService {
         // =========================
 
         if (usuario.getEstado() == null
-                || usuario.getEstado().getIdEstado() == null) {
+                || usuario.getEstado()
+                        .getIdEstado() == null) {
 
             throw new RuntimeException(
                     "El estado del usuario es obligatorio.");
@@ -134,7 +149,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
             throw new RuntimeException(
                     "El estado con ID "
-                    + usuario.getEstado().getIdEstado()
+                    + usuario.getEstado()
+                            .getIdEstado()
                     + " no existe.");
         }
 
@@ -146,48 +162,52 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         if (usuario.getIdUsuario() == null) {
 
-            // Para registrar sí es obligatorio enviar clave
             if (usuario.getClaveUsuario() == null
-                    || usuario.getClaveUsuario().isBlank()) {
+                    || usuario.getClaveUsuario()
+                            .isBlank()) {
 
                 throw new RuntimeException(
                         "La clave del usuario es obligatoria.");
             }
 
-            // Validar DNI único
             if (usuarioRepository
-                    .findByDniUsuario(usuario.getDniUsuario())
+                    .findByDniUsuario(
+                            usuario.getDniUsuario())
                     .isPresent()) {
 
                 throw new RuntimeException(
                         "Ya existe un usuario registrado con el DNI "
-                        + usuario.getDniUsuario() + ".");
+                        + usuario.getDniUsuario()
+                        + ".");
             }
 
-            // Validar correo único
             if (usuarioRepository
-                    .findByCorreoUsuario(usuario.getCorreoUsuario())
+                    .findByCorreoUsuario(
+                            usuario.getCorreoUsuario())
                     .isPresent()) {
 
                 throw new RuntimeException(
                         "Ya existe un usuario registrado con el correo "
-                        + usuario.getCorreoUsuario() + ".");
+                        + usuario.getCorreoUsuario()
+                        + ".");
             }
 
-            // Encriptar clave antes de guardar
             usuario.setClaveUsuario(
                     passwordEncoder.encode(
                             usuario.getClaveUsuario()));
         }
 
         // =========================
-        // ACTUALIZACIÓN
+        // ACTUALIZACION
         // =========================
+
         else {
 
-            Usuario existente = usuarioRepository
-                    .findById(usuario.getIdUsuario())
-                    .orElse(null);
+            Usuario existente =
+                    usuarioRepository
+                            .findById(
+                                    usuario.getIdUsuario())
+                            .orElse(null);
 
             if (existente == null) {
 
@@ -197,7 +217,6 @@ public class UsuarioServiceImpl implements UsuarioService {
                         + " no existe.");
             }
 
-            // Validar que otro usuario no tenga el mismo DNI
             if (usuarioRepository
                     .existsByDniUsuarioAndIdUsuarioNot(
                             usuario.getDniUsuario(),
@@ -205,10 +224,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 
                 throw new RuntimeException(
                         "Ya existe otro usuario con el DNI "
-                        + usuario.getDniUsuario() + ".");
+                        + usuario.getDniUsuario()
+                        + ".");
             }
 
-            // Validar que otro usuario no tenga el mismo correo
             if (usuarioRepository
                     .existsByCorreoUsuarioAndIdUsuarioNot(
                             usuario.getCorreoUsuario(),
@@ -216,18 +235,17 @@ public class UsuarioServiceImpl implements UsuarioService {
 
                 throw new RuntimeException(
                         "Ya existe otro usuario con el correo "
-                        + usuario.getCorreoUsuario() + ".");
+                        + usuario.getCorreoUsuario()
+                        + ".");
             }
 
             /*
-             * Si no se envía una nueva clave,
-             * conserva la que ya existe.
-             *
-             * Si se envía una nueva clave,
-             * se vuelve a encriptar.
+             * Si no se envia clave nueva,
+             * se conserva la existente.
              */
             if (usuario.getClaveUsuario() == null
-                    || usuario.getClaveUsuario().isBlank()) {
+                    || usuario.getClaveUsuario()
+                            .isBlank()) {
 
                 usuario.setClaveUsuario(
                         existente.getClaveUsuario());
@@ -243,7 +261,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
-    // Busca usuario por ID
+    /* BUSCA POR ID */
     @Override
     public Usuario buscarPorId(Integer id) {
 
@@ -252,23 +270,24 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .orElse(null);
     }
 
-    // Elimina usuario por ID
+    /* ELIMINA POR ID */
     @Override
     @Transactional
     public void eliminar(Integer id) {
 
-        Usuario usuario = usuarioRepository
-                .findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "El usuario con ID "
-                                + id
-                                + " no existe."));
+        Usuario usuario =
+                usuarioRepository
+                        .findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "El usuario con ID "
+                                        + id
+                                        + " no existe."));
 
         usuarioRepository.delete(usuario);
     }
 
-    // Busca usuario por DNI
+    /* BUSCA POR DNI */
     @Override
     public Usuario buscarPorDni(String dni) {
 
@@ -277,20 +296,23 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .orElse(null);
     }
 
-    // Busca usuario por correo
+    /* BUSCA POR CORREO */
     @Override
-    public Usuario buscarPorCorreo(String correo) {
+    public Usuario buscarPorCorreo(
+            String correo) {
 
         return usuarioRepository
                 .findByCorreoUsuario(correo)
                 .orElse(null);
     }
 
-    // Lista usuarios por Tipo
+    /* LISTA POR TIPO */
     @Override
-    public List<Usuario> listarPorTipo(Integer idTipo) {
+    public List<Usuario> listarPorTipo(
+            Integer idTipo) {
 
-        Tipo tipo = tipoService.buscarPorId(idTipo);
+        Tipo tipo =
+                tipoService.buscarPorId(idTipo);
 
         if (tipo == null) {
 
@@ -304,11 +326,14 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .findByTipoIdTipo(idTipo);
     }
 
-    // Lista usuarios por Estado
+    /* LISTA POR ESTADO */
     @Override
-    public List<Usuario> listarPorEstado(Integer idEstado) {
+    public List<Usuario> listarPorEstado(
+            Integer idEstado) {
 
-        Estado estado = estadoService.buscarPorId(idEstado);
+        Estado estado =
+                estadoService.buscarPorId(
+                        idEstado);
 
         if (estado == null) {
 
@@ -319,14 +344,133 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         return usuarioRepository
-                .findByEstadoIdEstado(idEstado);
+                .findByEstadoIdEstado(
+                        idEstado);
     }
 
+    /*
+     * LISTA SOLO USUARIOS CLIENTE.
+     * USADO POR EL VENDEDOR AL REALIZAR UNA VENTA.
+     */
     @Override
     public List<Usuario> listarClientes() {
 
         return usuarioRepository
                 .findByTipoDescripcionIgnoreCase(
                         "Cliente");
+    }
+
+    /*
+     * REGISTRO PUBLICO DEL CLIENTE.
+     *
+     * IMPORTANTE:
+     * Angular NO envia Tipo ni Estado.
+     *
+     * Spring asigna obligatoriamente:
+     * - Tipo = Cliente
+     * - Estado = Activo
+     */
+    @Override
+    @Transactional
+    public Usuario registrarCliente(
+            RegistroClienteRequestDTO registro) {
+
+        if (registro == null) {
+
+            throw new IllegalArgumentException(
+                    "Los datos del registro son obligatorios.");
+        }
+
+        // =========================
+        // BUSCAR TIPO CLIENTE
+        // =========================
+
+        Tipo tipoCliente =
+                tipoRepository
+                        .findByDescripcionIgnoreCase(
+                                "Cliente")
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "No existe el tipo Cliente "
+                                        + "configurado en el sistema."));
+
+        // =========================
+        // BUSCAR ESTADO ACTIVO
+        // =========================
+
+        Estado estadoActivo =
+                estadoRepository
+                        .findByDescripcionIgnoreCase(
+                                "Activo")
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "No existe el estado Activo "
+                                        + "configurado en el sistema."));
+
+        // =========================
+        // CREAR USUARIO CLIENTE
+        // =========================
+
+        Usuario cliente =
+                new Usuario();
+
+        if (registro.getDniUsuario() != null) {
+
+            cliente.setDniUsuario(
+                    registro.getDniUsuario()
+                            .trim());
+        }
+
+        if (registro.getNombreUsuario() != null) {
+
+            cliente.setNombreUsuario(
+                    registro.getNombreUsuario()
+                            .trim());
+        }
+
+        if (registro.getApepatUsuario() != null) {
+
+            cliente.setApepatUsuario(
+                    registro.getApepatUsuario()
+                            .trim());
+        }
+
+        if (registro.getApematUsuario() != null) {
+
+            cliente.setApematUsuario(
+                    registro.getApematUsuario()
+                            .trim());
+        }
+
+        if (registro.getCorreoUsuario() != null) {
+
+            cliente.setCorreoUsuario(
+                    registro.getCorreoUsuario()
+                            .trim()
+                            .toLowerCase());
+        }
+
+        cliente.setClaveUsuario(
+                registro.getClaveUsuario());
+
+        cliente.setFecnacUsuario(
+                registro.getFecnacUsuario());
+
+        /*
+         * EL CLIENTE NO PUEDE ELEGIR ESTOS DATOS.
+         */
+        cliente.setTipo(tipoCliente);
+        cliente.setEstado(estadoActivo);
+
+        /*
+         * Reutilizamos guardar().
+         *
+         * Asi mantenemos en un solo lugar:
+         * - validaciones
+         * - DNI unico
+         * - correo unico
+         * - BCrypt
+         */
+        return guardar(cliente);
     }
 }
